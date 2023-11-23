@@ -4,11 +4,14 @@ project(Experiment)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(Headers)
+set(Headers
+    include/graph.h
+    include/atomics.h
+    include/bfs.h
+    include/builder.h)
 
-add_executable(expt1 src/parent_stats.cpp)
-
-add_executable(expt2 src/cacheline_visit.cpp)
+add_executable(expt1 src/parent_stats.cpp ${Headers})
+add_executable(expt2 src/cacheline_visit.cpp ${Headers})
 
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/include)
