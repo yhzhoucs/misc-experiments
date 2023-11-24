@@ -1,0 +1,3 @@
+[submodule "plf_nanotimer"]
+	path = plf_nanotimer
+	url = https://github.com/mattreecebentley/plf_nanotimer.git
