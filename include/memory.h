@@ -31,6 +31,7 @@ class Memory {
 private:
     Bitmap bmp;
     std::vector<T> accum_edge_off;
+    std::vector<T> accum_iso_v_num;
     T mem_block_1_st;
     T mem_block_2_st;
 public:
@@ -45,32 +46,45 @@ public:
     void load_graph(Graph<U, DstU> const &graph);
     template<typename U, typename V>
     int access(U vid, V offset);
+    template<typename U, typename V>
+    T get_addr(U vid, V offset);
     void reset() {
         bmp.reset();
     }
+    template<typename U, typename DstU>
+    void check(Graph<U, DstU> const &graph);
 };
 
 template<typename T>
     template<typename U, typename DstU>
 void Memory<T>::load_graph(Graph<U, DstU> const &graph) {
-    accum_edge_off.reserve(graph.get_vertex_number());
+    accum_iso_v_num.reserve(graph.get_vertex_number() + 1);
+    accum_edge_off.reserve(graph.get_vertex_number() + 1);
+    accum_iso_v_num.emplace_back(0);
+    accum_edge_off.emplace_back(0);
     for (auto const u : std::views::iota(0, graph.get_vertex_number())) {
         accum_edge_off.emplace_back(
             (graph.in_degree(u) > 0) ? (graph.in_degree(u) - 1) : 0);
     }
+    for (auto const u : std::views::iota(0, graph.get_vertex_number())) {
+        accum_iso_v_num.emplace_back(graph.in_degree(u) == 0);
+    }
     std::partial_sum(accum_edge_off.begin(), accum_edge_off.end(), accum_edge_off.begin(), std::plus<>());
+    std::partial_sum(accum_iso_v_num.begin(), accum_iso_v_num.end(), accum_iso_v_num.begin(), std::plus<>());
+}
+
+template<typename T>
+    template<typename U, typename V>
+T Memory<T>::get_addr(U vid, V offset) {
+    return (offset == 0) ?
+           (mem_block_1_st + vid - accum_iso_v_num[vid])
+           : (mem_block_2_st + accum_edge_off[vid] + offset - 1);
 }
 
 template<typename T>
     template<typename U, typename V>
 int Memory<T>::access(U vid, V offset) {
-    T addr{};
-    if (offset == 0) {
-        addr = mem_block_1_st + vid;
-    } else {
-        addr = mem_block_2_st + accum_edge_off[vid] + offset - 1;
-    }
-    T cacheline_id = addr / cacheline_edge_num;
+    T cacheline_id = get_addr(vid, offset) / cacheline_edge_num;
     int edge_visited{};
     if (!bmp.get_bit(cacheline_id)) {
         bmp.set_bit(cacheline_id);
@@ -79,6 +93,36 @@ int Memory<T>::access(U vid, V offset) {
         edge_visited = 0; // or 1?
     }
     return edge_visited;
+}
+
+template<typename T>
+template<typename U, typename DstU>
+void Memory<T>::check(Graph<U, DstU> const &graph) {
+    std::vector<int> mem_addr(10000000, 0);
+    int now_mem_addr_1 = mem_block_1_st;
+    int now_mem_addr_2 = mem_block_2_st;
+    for (int i = 0; i < graph.get_vertex_number(); ++i) {
+        int tmp_e_id = graph.get_in_offset()[i];
+        for (int j = 0; j < graph.in_degree(i); ++j) {
+            if (j < 1) {
+                mem_addr[tmp_e_id] = now_mem_addr_1;
+                now_mem_addr_1++;
+            } else {
+                mem_addr[tmp_e_id] = now_mem_addr_2;
+                now_mem_addr_2++;
+            }
+            tmp_e_id++;
+        }
+    }
+    int tmp_e_id{};
+    for (int v = 0; v < graph.get_vertex_number(); ++v) {
+        int offset{};
+        for (auto const &u : graph.in_neighbors(v)) {
+            assert(get_addr(v, offset) == mem_addr[tmp_e_id]);
+            tmp_e_id++;
+            offset++;
+        }
+    }
 }
 
 #endif //EXPERIMENT_MEMORY_H

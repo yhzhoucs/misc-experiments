@@ -59,6 +59,7 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
     depth[root] = 0;
     long long total_edge_vis{};
     int sum = 1;
+    int iter{};
     while (sum > 0) {
         sum = 0;
         memory.reset(); // cache expire
@@ -66,7 +67,7 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
             if (is_max_prop(depth[v])) {
                 bool flag = false;
                 for (auto const &u : graph.in_neighbors(v)) {
-                    if (!is_max_prop(depth[u])) {
+                    if (!is_max_prop(depth[u]) && depth[u] == iter) {
                         flag = true;
                         break;
                     }
@@ -75,8 +76,8 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
                     sum++;
                     int now_edge_offset{};
                     for (auto const &u : graph.in_neighbors(v)) {
-                        if (!is_max_prop(depth[u])) {
-                            total_edge_vis += memory.access(v, now_edge_offset);
+                        total_edge_vis += memory.access(v, now_edge_offset);
+                        if (!is_max_prop(depth[u]) && depth[u] == iter) {
                             depth[v] = depth[u] + 1;
                             break;
                         }
@@ -85,6 +86,7 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
                 }
             }
         }
+        iter++;
     }
     return total_edge_vis;
 }

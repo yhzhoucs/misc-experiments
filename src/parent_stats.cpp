@@ -27,6 +27,7 @@ int main(int argc, char *argv[]) {
     timer.start();
     Builder<Node> builder{graph_file_path.string()};
     Graph<Node> graph = builder.build_csr();
+    std::clog << "Graph: " << graph_file_path.string() << std::endl;
     std::clog << "Graph Construction: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
     timer.start();
@@ -62,11 +63,12 @@ int main(int argc, char *argv[]) {
             std::transform(parent_cnt.begin(), parent_cnt.end(), local_parent_cnt.begin(), parent_cnt.begin(), std::plus<>());
         }
     }
-    std::clog << "Computing: " << timer.get_elapsed_ms() << " ms" << std::endl;
+    std::clog << "Processing: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
-    std::ofstream out("parent_stats_out.txt", std::ios::out | std::ios::trunc);
+    std::ofstream out(graph_file_path.filename().string() + "-parent_stats.txt", std::ios::out | std::ios::trunc);
     std::copy(parent_cnt.begin(), parent_cnt.end(), std::ostream_iterator<int>(out, "\n"));
     out.flush();
+    out.close();
 
     return 0;
 }

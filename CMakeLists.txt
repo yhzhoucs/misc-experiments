@@ -23,7 +23,6 @@ set(SubModuleHeaders
 
 add_executable(expt1 src/parent_stats.cpp ${Headers1} ${SubModuleHeaders})
 add_executable(expt2 src/cacheline_visit.cpp ${Headers2} ${SubModuleHeaders})
-add_executable(test_cpp src/test_cpp.cpp)
 
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
