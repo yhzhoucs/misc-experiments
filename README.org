@@ -2,6 +2,10 @@
 #+author: Yuhang Zhou
 #+date: <2023-11-27 Mon>
 
+* Dependency
+- cmake 3.12.0+
+- gcc 8+
+
 * Manual
 ** Preparation
 
@@ -35,4 +39,5 @@ e.g.
 #+begin_src shell
 ./build/expt1 rmat_17.txt
 ./build/expt1 rmat_18.txt
-./build/expt2 rmat_17.txt #+end_src
+./build/expt2 rmat_17.txt
+#+end_src
