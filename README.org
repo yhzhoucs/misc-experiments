@@ -1,0 +1,30 @@
+#+title: Experiments
+#+author: Yuhang Zhou
+#+date: <2023-11-27 Mon>
+
+* Build Project
+
+*NOTE: Require C++20*
+
+#+begin_src shell
+cmake -S . -B build
+cd build && make
+#+end_src
+
+* Run Experiments
+
+*Ensure graph datasets are put in ./dataset/*
+
+#+begin_src shell
+./build/expt1 rmat_xx.txt
+
+./build/expt2 rmat_xx.txt
+#+end_src
+
+e.g.
+
+#+begin_src shell
+./build/expt1 rmat_17.txt
+./build/expt1 rmat_18.txt
+./build/expt2 rmat_17.txt
+#+end_src
