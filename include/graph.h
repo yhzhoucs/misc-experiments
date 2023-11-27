@@ -11,7 +11,8 @@
 #include <queue>
 #include <unordered_set>
 
-template<typename T>
+template<typename T,
+    typename=std::enable_if_t<std::is_integral_v<T>>>
 T &get_dst_id(T &dst) {
     return dst;
 }
