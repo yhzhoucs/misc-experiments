@@ -21,10 +21,10 @@ int main(int argc, char *argv[]) {
 
     fs::path graph_file_path(GRAPH_FILE_PREFIX);
 
-    std::array<std::string, 4> graph_files{
-        "rmat_17.txt",
-        "rmat_18.txt",
-        "rmat_19.txt",
+    std::array<std::string, 1> graph_files{
+//        "rmat_17.txt",
+//        "rmat_18.txt",
+//        "rmat_19.txt",
         "rmat_20.txt"
     };
 
@@ -62,13 +62,13 @@ int main(int argc, char *argv[]) {
                 Memory<unsigned> memory{graph};
                 #pragma omp for schedule(dynamic, 1) nowait
                 for (Node vid = vid_beg; vid < vid_end; ++vid) {
-                    if (graph.out_degree(vid) > 0) {
+//                    if (graph.out_degree(vid) > 0) {
                         auto [t_visit, t_visit_cacheline] = do_cacheline_bfs(graph, vid, memory);
                         std::transform(l_vertex_edge_visit.begin(), l_vertex_edge_visit.end(),
                                        t_visit.begin(), l_vertex_edge_visit.begin(), std::plus<>());
                         std::transform(l_vertex_edge_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.end(),
                                        t_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.begin(), std::plus<>());
-                    }
+//                    }
                 }
                 #pragma omp critical
                 {
@@ -86,13 +86,13 @@ int main(int argc, char *argv[]) {
                 Memory<unsigned> memory{reordered};
                 #pragma omp for schedule(dynamic, 1) nowait
                 for (Node vid = vid_beg; vid < vid_end; ++vid) {
-                    if (reordered.out_degree(new_ids[vid]) > 0) {
+//                    if (reordered.out_degree(new_ids[vid]) > 0) {
                         auto [t_visit, t_visit_cacheline] = do_cacheline_bfs(reordered, new_ids[vid], memory);
                         std::transform(l_vertex_edge_visit.begin(), l_vertex_edge_visit.end(),
                                        t_visit.begin(), l_vertex_edge_visit.begin(), std::plus<>());
                         std::transform(l_vertex_edge_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.end(),
                                        t_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.begin(), std::plus<>());
-                    }
+//                    }
                 }
                 #pragma omp critical
                 {

@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
     in.read(reinterpret_cast<char*>(buf), sizeof(long double) * 1048576);
     in.close();
 
-    long double sum = std::reduce(std::begin(buf), std::end(buf), 0, std::plus<>());
-    std::cout << (sum / 1048567 / 64) << std::endl;
+    long double sum = std::reduce(std::begin(buf), std::end(buf), 0.0, std::plus<>());
+    std::cout << (sum / 1048576 / 64) << std::endl;
 
     return 0;
 }
