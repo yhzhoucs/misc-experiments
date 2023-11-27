@@ -2,18 +2,27 @@
 #+author: Yuhang Zhou
 #+date: <2023-11-27 Mon>
 
-* Build Project
+* Manual
+** Preparation
 
-*NOTE: Require C++20*
+#+begin_src shell
+git clone https://github.com/yhzhoucs/misc-experiments.git
+# fetch submodule
+git submodule update --init --recursive
+#+end_src
+
+** Build Project
+
+*Note: Require C++20*
 
 #+begin_src shell
 cmake -S . -B build
 cd build && make
 #+end_src
 
-* Run Experiments
+** Run Experiments
 
-*Ensure graph datasets are put in ./dataset/*
+*Note: Ensure graph datasets are put in ./dataset/*
 
 #+begin_src shell
 ./build/expt1 rmat_xx.txt
@@ -26,5 +35,4 @@ e.g.
 #+begin_src shell
 ./build/expt1 rmat_17.txt
 ./build/expt1 rmat_18.txt
-./build/expt2 rmat_17.txt
-#+end_src
+./build/expt2 rmat_17.txt #+end_src
