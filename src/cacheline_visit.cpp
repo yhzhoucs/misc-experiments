@@ -1,6 +1,7 @@
 #include "graph.h"
 #include "builder.h"
 #include "bfs.h"
+#include "utils.h"
 #include "plf_nanotimer.h"
 #include <omp.h>
 #include <filesystem>
@@ -19,61 +20,96 @@ int main(int argc, char *argv[]) {
     plf::nanotimer timer;
 
     fs::path graph_file_path(GRAPH_FILE_PREFIX);
-    if (argc < 2) {
-        graph_file_path /= "rmat_17.txt";
-    } else {
-        graph_file_path /= argv[1];
-    }
 
-    timer.start();
-    Builder<Node> builder{graph_file_path.string()};
-    Graph<Node> graph = builder.build_csr();
-    std::clog << "Graph: " << graph_file_path.string() << std::endl;
-    std::clog << "Graph Construction: " << timer.get_elapsed_ms() << " ms" << std::endl;
-    timer.start();
-    auto [reordered, new_ids, new_ids_remap] = reorder_by_degree(graph);
-    std::clog << "Graph Reorder: " << timer.get_elapsed_ms() << " ms" << std::endl;
+    std::array<std::string, 4> graph_files{
+        "rmat_17.txt",
+        "rmat_18.txt",
+        "rmat_19.txt",
+        "rmat_20.txt"
+    };
 
-    timer.start();
-    std::vector<Node> sources = pick_sources(graph, 64);
-//    std::vector<Node> sources{76294, 39534, 82507, 119159, 63081, 107786, 66976, 49259, 84806, 14105, 115310, 124530, 23212, 30726, 83086, 72855};
-    std::clog << "Source Pick: " << timer.get_elapsed_ms() << " ms" << std::endl;
+    for (auto const &graph_file: graph_files) {
+        std::clog << "Starting to process " << graph_file << std::endl;
+        std::clog << "Dataset path: " << (graph_file_path/graph_file).string() << std::endl;
+        timer.start();
+        Builder<Node> builder{(graph_file_path/graph_file).string()};
+        Graph<Node> graph = builder.build_csr();
+        std::clog << "Graph Construction: " << timer.get_elapsed_ms() << " ms" << std::endl;
+        timer.start();
+        auto [reordered, new_ids, new_ids_remap] = reorder_by_degree(graph);
+        std::clog << "Graph Reorder: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
-    timer.start();
-    long double edge_vis{};
-#pragma omp parallel default(none) shared(graph, sources, edge_vis)
-    {
-        long double local_edge_vis{};
-        Memory<unsigned> memory{graph};
-#pragma omp for nowait
-        for (size_t i = 0; i < sources.size(); ++i) {
-            local_edge_vis += do_cacheline_bfs(graph, sources[i], memory);
+        timer.start();
+//        int block_size = 65536;
+        int block_size = 8;
+
+        long double edge_vis{};
+        std::vector<long double> vertex_edge_visit(graph.get_vertex_number());
+        std::vector<long double> vertex_edge_visit_cacheline(graph.get_vertex_number());
+
+        std::vector<long double> reorder_vertex_edge_visit(graph.get_vertex_number());
+        std::vector<long double> reorder_vertex_edge_visit_cacheline(graph.get_vertex_number());
+
+        // backup data when every block finished
+        for (int block_id{}; block_id < 64 / block_size; ++block_id) {
+            Node vid_beg = block_id * block_size;
+            Node vid_end = std::min((block_id + 1) * block_size, static_cast<Node>(graph.get_vertex_number()));
+            std::cout << std::format("Start to process block {} ({}-{})", block_id, vid_beg, vid_end) << std::endl;
+            #pragma omp parallel default(none) shared(graph, vid_beg, vid_end, vertex_edge_visit, vertex_edge_visit_cacheline)
+            {
+                std::vector<long double> l_vertex_edge_visit(graph.get_vertex_number());
+                std::vector<long double> l_vertex_edge_visit_cacheline(graph.get_vertex_number());
+                Memory<unsigned> memory{graph};
+                #pragma omp for schedule(dynamic, 1) nowait
+                for (Node vid = vid_beg; vid < vid_end; ++vid) {
+                    if (graph.out_degree(vid) > 0) {
+                        auto [t_visit, t_visit_cacheline] = do_cacheline_bfs(graph, vid, memory);
+                        std::transform(l_vertex_edge_visit.begin(), l_vertex_edge_visit.end(),
+                                       t_visit.begin(), l_vertex_edge_visit.begin(), std::plus<>());
+                        std::transform(l_vertex_edge_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.end(),
+                                       t_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.begin(), std::plus<>());
+                    }
+                }
+                #pragma omp critical
+                {
+                    std::transform(vertex_edge_visit.begin(), vertex_edge_visit.end(),
+                                   l_vertex_edge_visit.begin(), vertex_edge_visit.begin(), std::plus<>());
+                    std::transform(vertex_edge_visit_cacheline.begin(), vertex_edge_visit_cacheline.end(),
+                                   l_vertex_edge_visit_cacheline.begin(), vertex_edge_visit_cacheline.begin(), std::plus<>());
+                }
+            }
+
+            #pragma omp parallel default(none) shared(reordered, new_ids, vid_beg, vid_end, reorder_vertex_edge_visit, reorder_vertex_edge_visit_cacheline)
+            {
+                std::vector<long double> l_vertex_edge_visit(reordered.get_vertex_number());
+                std::vector<long double> l_vertex_edge_visit_cacheline(reordered.get_vertex_number());
+                Memory<unsigned> memory{reordered};
+                #pragma omp for schedule(dynamic, 1) nowait
+                for (Node vid = vid_beg; vid < vid_end; ++vid) {
+                    if (reordered.out_degree(new_ids[vid]) > 0) {
+                        auto [t_visit, t_visit_cacheline] = do_cacheline_bfs(reordered, new_ids[vid], memory);
+                        std::transform(l_vertex_edge_visit.begin(), l_vertex_edge_visit.end(),
+                                       t_visit.begin(), l_vertex_edge_visit.begin(), std::plus<>());
+                        std::transform(l_vertex_edge_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.end(),
+                                       t_visit_cacheline.begin(), l_vertex_edge_visit_cacheline.begin(), std::plus<>());
+                    }
+                }
+                #pragma omp critical
+                {
+                    std::transform(reorder_vertex_edge_visit.begin(), reorder_vertex_edge_visit.end(),
+                                   l_vertex_edge_visit.begin(), reorder_vertex_edge_visit.begin(), std::plus<>());
+                    std::transform(reorder_vertex_edge_visit_cacheline.begin(), reorder_vertex_edge_visit_cacheline.end(),
+                                   l_vertex_edge_visit_cacheline.begin(), reorder_vertex_edge_visit_cacheline.begin(), std::plus<>());
+                }
+            }
+
+            std::cout << "Block " << block_id << " Finish!" << std::endl;
+            reduce_backup(vertex_edge_visit, graph_file + "vertex_edge_visit.bin", std::plus<>());
+            reduce_backup(vertex_edge_visit_cacheline, graph_file + "vertex_edge_visit_cacheline.bin", std::plus<>());
+            reduce_backup(reorder_vertex_edge_visit, graph_file + "reorder_vertex_edge_visit.bin", std::plus<>());
+            reduce_backup(reorder_vertex_edge_visit_cacheline, graph_file + "reorder_vertex_edge_visit_cacheline.bin", std::plus<>());
+            std::cout << "Backup Finish!" << std::endl;
         }
-#pragma omp atomic
-        edge_vis = edge_vis + local_edge_vis;
     }
-    std::clog << "Processing: " << timer.get_elapsed_ms() << " ms" << std::endl;
-
-    timer.start();
-    long double reordered_edge_vis{};
-#pragma omp parallel default(none) shared(reordered, new_ids, sources, reordered_edge_vis)
-    {
-        long double local_edge_vis{};
-        Memory<unsigned> memory{reordered};
-#pragma omp for nowait
-        for (size_t i = 0; i < sources.size(); ++i) {
-            local_edge_vis += do_cacheline_bfs(reordered, new_ids[sources[i]], memory);
-        }
-#pragma omp atomic
-        reordered_edge_vis = reordered_edge_vis + local_edge_vis;
-    }
-    std::clog << "Processing Reordered: " << timer.get_elapsed_ms() << " ms" << std::endl;
-
-    std::cout << std::format("Total Edge Visit: {}", edge_vis) << std::endl;
-    std::cout << std::format("Avg Edge Visit: {}", edge_vis / sources.size()) << std::endl;
-    std::cout << std::format("Vertex-Avg Edge Visit: {}", edge_vis / sources.size() / graph.get_vertex_number()) << std::endl;
-
-    std::cout << std::format("Total Edge Visit Reordered: {}", reordered_edge_vis) << std::endl;
-    std::cout << std::format("Avg Edge Visit Reordered: {}", reordered_edge_vis / sources.size()) << std::endl;
-    std::cout << std::format("Vertex-Avg Edge Visit Reordered: {}", reordered_edge_vis / sources.size() / graph.get_vertex_number()) << std::endl;
+    return 0;
 }

@@ -1,0 +1,51 @@
+Now Graph: /home/aozora/Projects/Experiment/dataset/rmat_17.txt
+Graph Construction: 1362.04 ms
+Graph Reorder: 708.447 ms
+Source Pick: 0.027341 ms
+Processing: 976.229 ms
+Processing Reordered: 571.12 ms
+Total Edge Visit: 79609392
+Avg Edge Visit: 1243896.75
+Vertex-Avg Edge Visit: 9.490251466762289141
+Total Edge Visit Reordered: 27207840
+Avg Edge Visit Reordered: 425122.5
+Vertex-Avg Edge Visit Reordered: 3.2434520221864485661
+
+Now Graph: /home/aozora/Projects/Experiment/dataset/rmat_18.txt
+Graph Construction: 2837.6 ms
+Graph Reorder: 1467.51 ms
+Source Pick: 0.026252 ms
+Processing: 2368.22 ms
+Processing Reordered: 1385.43 ms
+Total Edge Visit: 172058400
+Avg Edge Visit: 2688412.5
+Vertex-Avg Edge Visit: 10.255518934322106636
+Total Edge Visit Reordered: 49362608
+Avg Edge Visit Reordered: 771290.75
+Vertex-Avg Edge Visit Reordered: 2.942251938827281293
+
+Now Graph: /home/aozora/Projects/Experiment/dataset/rmat_19.txt
+Graph Construction: 5811.91 ms
+Graph Reorder: 3004.55 ms
+Source Pick: 0.028728 ms
+Processing: 4405.82 ms
+Processing Reordered: 2865.09 ms
+Total Edge Visit: 301680736
+Avg Edge Visit: 4713761.5
+Vertex-Avg Edge Visit: 8.990820849688910251
+Total Edge Visit Reordered: 93445056
+Avg Edge Visit Reordered: 1460079
+Vertex-Avg Edge Visit Reordered: 2.7848903079616850345
+Now Graph: /home/aozora/Projects/Experiment/dataset/rmat_20.txt
+
+Graph Construction: 11970.7 ms
+Graph Reorder: 6458.36 ms
+Source Pick: 0.033234 ms
+Processing: 10288.8 ms
+Processing Reordered: 5852.08 ms
+Total Edge Visit: 564488032
+Avg Edge Visit: 8820125.5
+Vertex-Avg Edge Visit: 8.411527156829833984
+Total Edge Visit Reordered: 174113120
+Avg Edge Visit Reordered: 2720517.5
+Vertex-Avg Edge Visit Reordered: 2.5944876670837402344

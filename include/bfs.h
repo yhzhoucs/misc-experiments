@@ -54,10 +54,12 @@ std::vector<PropT> do_bfs(Graph<T, DstT> const &graph, T root) {
 
 
 template<typename T, typename DstT, typename AddrT, typename PropT = int>
-long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &memory) {
+std::tuple<std::vector<int>, std::vector<int>>
+    do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &memory) {
     std::vector<PropT> depth(graph.get_vertex_number(), get_max_prop<PropT>());
+    std::vector<int> vertex_edge_visit(graph.get_vertex_number(), 0);
+    std::vector<int> vertex_edge_visit_cacheline(graph.get_vertex_number(), 0);
     depth[root] = 0;
-    long long total_edge_vis{};
     int sum = 1;
     int iter{};
     while (sum > 0) {
@@ -76,7 +78,8 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
                     sum++;
                     int now_edge_offset{};
                     for (auto const &u : graph.in_neighbors(v)) {
-                        total_edge_vis += memory.access(v, now_edge_offset);
+                        vertex_edge_visit[v] += 1;
+                        vertex_edge_visit_cacheline[v] += memory.access(v, now_edge_offset);
                         if (!is_max_prop(depth[u]) && depth[u] == iter) {
                             depth[v] = depth[u] + 1;
                             break;
@@ -88,7 +91,10 @@ long long do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &m
         }
         iter++;
     }
-    return total_edge_vis;
+    return {
+        std::move(vertex_edge_visit),
+        std::move(vertex_edge_visit_cacheline)
+    };
 }
 
 #endif //EXPERIMENT_BFS_H

@@ -8,7 +8,8 @@ set(Headers1
     include/graph.h
     include/atomics.h
     include/bfs.h
-    include/builder.h)
+    include/builder.h
+    include/utils.h)
 
 set(Headers2
         include/graph.h
@@ -16,7 +17,8 @@ set(Headers2
         include/builder.h
         include/memory.h
         include/bitmap.h
-        include/bfs.h)
+        include/bfs.h
+        include/utils.h)
 
 set(SubModuleHeaders
     plf_nanotimer/plf_nanotimer.h)
@@ -37,3 +39,6 @@ if(OpenMP_CXX_FOUND)
     target_link_libraries(expt1 PUBLIC OpenMP::OpenMP_CXX)
     target_link_libraries(expt2 PUBLIC OpenMP::OpenMP_CXX)
 endif()
+
+add_executable(test_cpp src/test_cpp.cpp include/utils.h)
+target_include_directories(test_cpp PRIVATE ${PROJECT_SOURCE_DIR}/include)
