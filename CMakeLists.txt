@@ -28,8 +28,8 @@ target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
-target_compile_definitions(expt1 PRIVATE GRAPH_FILE_PREFIX="${PROJECT_SOURCE_DIR}/dataset") # dataset path
-target_compile_definitions(expt2 PRIVATE GRAPH_FILE_PREFIX="${PROJECT_SOURCE_DIR}/dataset") # dataset path
+target_compile_definitions(expt1 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset") # dataset path
+target_compile_definitions(expt2 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset") # dataset path
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)

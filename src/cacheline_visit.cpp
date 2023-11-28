@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 
     plf::nanotimer timer;
 
-    fs::path graph_file_path(GRAPH_FILE_PREFIX);
+    fs::path graph_file_path(DATASET_PATH);
     if (argc < 2) {
         graph_file_path /= "rmat_17.txt";
     } else {
