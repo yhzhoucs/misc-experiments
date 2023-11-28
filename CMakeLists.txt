@@ -20,18 +20,27 @@ set(Headers2
         include/bfs.h
         include/utils.h)
 
+set(Headers3
+    include/atomics.h
+    include/utils.h)
+
 set(SubModuleHeaders
     plf_nanotimer/plf_nanotimer.h)
 
 add_executable(expt1 src/parent_stats.cpp ${Headers1} ${SubModuleHeaders})
 add_executable(expt2 src/cacheline_visit.cpp ${Headers2} ${SubModuleHeaders})
+add_executable(analyze src/analyze.cpp ${Headers3})
 
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
-target_compile_definitions(expt1 PRIVATE GRAPH_FILE_PREFIX="${PROJECT_SOURCE_DIR}/dataset") # dataset path
-target_compile_definitions(expt2 PRIVATE GRAPH_FILE_PREFIX="${PROJECT_SOURCE_DIR}/dataset") # dataset path
+target_include_directories(analyze PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_definitions(expt1 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
+target_compile_definitions(expt2 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
+target_compile_definitions(expt1 PRIVATE RECORD_PATH="${PROJECT_SOURCE_DIR}/records")
+target_compile_definitions(expt2 PRIVATE RECORD_PATH="${PROJECT_SOURCE_DIR}/records")
+target_compile_definitions(analyze PRIVATE RECORD_PATH="${PROJECT_SOURCE_DIR}/records")
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
@@ -42,3 +51,4 @@ endif()
 
 add_executable(test_cpp src/test_cpp.cpp include/utils.h)
 target_include_directories(test_cpp PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_definitions(test_cpp PRIVATE RECORD_PATH="${PROJECT_SOURCE_DIR}/records")
