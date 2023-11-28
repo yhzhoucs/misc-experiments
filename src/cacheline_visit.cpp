@@ -5,6 +5,7 @@
 #include "plf_nanotimer.h"
 #include <omp.h>
 #include <filesystem>
+#include <string>
 #include <format>
 
 namespace fs = std::filesystem;
@@ -44,8 +45,7 @@ int main(int argc, char *argv[]) {
                 non_iso_cnt++;
             }
         }
-        std::cout << non_iso_cnt << std::endl;
-        continue;
+        std::cout << "Non Isolated Vertex Number: " << non_iso_cnt << std::endl;
 
         std::vector<long double> vertex_edge_visit(graph.get_vertex_number());
         std::vector<long double> vertex_edge_visit_cacheline(graph.get_vertex_number());
@@ -117,15 +117,15 @@ int main(int argc, char *argv[]) {
 
             fs::path record_path(RECORD_PATH);
 
-//            reduce_backup(vertex_edge_visit,
-//                          (RECORD_PATH/(graph_file + "-vertex_edge_visit.bin")).string(), std::plus<>());
-//            reduce_backup(vertex_edge_visit_cacheline,
-//                          (RECORD_PATH/(graph_file + "-vertex_edge_visit_cacheline.bin")).string(), std::plus<>());
-//            reduce_backup(reorder_vertex_edge_visit,
-//                          (RECORD_PATH/(graph_file + "-reorder_vertex_edge_visit.bin")).string(), std::plus<>());
-//            reduce_backup(reorder_vertex_edge_visit_cacheline,
-//                          (RECORD_PATH/(graph_file + "-reorder_vertex_edge_visit_cacheline.bin")).string(), std::plus<>());
-//            std::cout << "Backup Finish!" << std::endl;
+            reduce_backup(vertex_edge_visit,
+                          (record_path/(graph_file + "-vertex_edge_visit.bin")).string(), std::plus<>());
+            reduce_backup(vertex_edge_visit_cacheline,
+                          (record_path/(graph_file + "-vertex_edge_visit_cacheline.bin")).string(), std::plus<>());
+            reduce_backup(reorder_vertex_edge_visit,
+                          (record_path/(graph_file + "-reorder_vertex_edge_visit.bin")).string(), std::plus<>());
+            reduce_backup(reorder_vertex_edge_visit_cacheline,
+                          (record_path/(graph_file + "-reorder_vertex_edge_visit_cacheline.bin")).string(), std::plus<>());
+            std::cout << "Backup Finish!" << std::endl;
         }
     }
     return 0;
