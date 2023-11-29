@@ -10,6 +10,12 @@ namespace fs = std::filesystem;
 using Node = int;
 using Prop = int;
 
+template<typename T, typename U, typename V>
+std::ostream &print_info(std::ostream &out, T const &iter, U const &active_vertex, V const &active_edge) {
+    out << std::format("{} {:<10d} {:<15d}", iter, active_vertex, active_edge) << std::endl;
+    return out;
+}
+
 template<typename T, typename DstT, typename PropT = int>
 std::vector<PropT> push_active_num_ana(Graph<T, DstT> const &graph, T root) {
     std::vector<PropT> depth(graph.get_vertex_number(), get_max_prop<PropT>());
@@ -17,8 +23,7 @@ std::vector<PropT> push_active_num_ana(Graph<T, DstT> const &graph, T root) {
     depth[root] = 0;
     frontier.emplace(root);
     int iter{};
-    std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                         iter, frontier.size(), graph.out_degree(root)) << std::endl;
+    print_info(std::cout, iter, frontier.size(), graph.out_degree(root));
     while (!frontier.empty()) {
         int frontier_size = frontier.size();
         long long active_num{};
@@ -38,8 +43,7 @@ std::vector<PropT> push_active_num_ana(Graph<T, DstT> const &graph, T root) {
                 }
             }
         }
-        std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                                 iter + 1, active_num, total_degree) << std::endl;
+        print_info(std::cout, iter + 1, active_num, total_degree);
         for (auto const &u : frontier_vec) {
             for (auto const &v : graph.out_neighbors(u)) {
                 if (is_max_prop(depth[v])) {
@@ -60,8 +64,7 @@ std::vector<PropT> push_active_num_no_repeat_ana(Graph<T, DstT> const &graph, T 
     depth[root] = 0;
     frontier.emplace(root);
     int iter{};
-    std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                             iter, frontier.size(), graph.out_degree(root)) << std::endl;
+    print_info(std::cout, iter, frontier.size(), graph.out_degree(root));
     while (!frontier.empty()) {
         int frontier_size = frontier.size();
         long long active_num{};
@@ -77,8 +80,7 @@ std::vector<PropT> push_active_num_no_repeat_ana(Graph<T, DstT> const &graph, T 
                 }
             }
         }
-        std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                                 iter + 1, active_num, total_degree) << std::endl;
+        print_info(std::cout, iter + 1, active_num, total_degree);
         iter++;
     }
     return depth;
@@ -113,12 +115,15 @@ std::vector<PropT> pull_active_num_ana(Graph<T, DstT> const &graph, T root) {
     int iter{};
     while (sum > 0) {
         sum = 0;
-        auto [active_num, total_degree] = pull_active_helper(graph, depth);
-        std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                                 iter, active_num, total_degree) << std::endl;
+//        auto [active_num, total_degree] = pull_active_helper(graph, depth);
+//        print_info(std::cout, iter + 1, active_num, total_degree);
+        long long active_v{};
+        long long edge_visit{};
         for (T v : std::views::iota(0, graph.get_vertex_number())) {
             if (is_max_prop(depth[v])) {
+                active_v++;
                 for (auto const &u : graph.in_neighbors(v)) {
+                    edge_visit++;
                     if (front.get_bit(u)) {
                         depth[v] = depth[u] + 1;
                         sum++;
@@ -127,12 +132,10 @@ std::vector<PropT> pull_active_num_ana(Graph<T, DstT> const &graph, T root) {
                 }
             }
         }
+        print_info(std::cout, iter, active_v, edge_visit);
         iter++;
         front.swap(next);
     }
-    auto [active_num, total_degree] = pull_active_helper(graph, depth);
-    std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                             iter, active_num, total_degree) << std::endl;
     return depth;
 }
 
@@ -150,12 +153,15 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
     int iter{};
     while (sum > 0) {
         sum = 0;
-        auto [active_num, total_degree] = pull_active_helper(graph, depth);
-        std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                                 iter, active_num, total_degree) << std::endl;
+//        auto [active_num, total_degree] = pull_active_helper(graph, depth);
+//        print_info(std::cout, iter + 1, active_num, total_degree);
+        long long active_v{};
+        long long edge_visit{};
         for (T v : std::views::iota(0, graph.get_vertex_number())) {
             if (is_max_prop(depth[v])) {
+                active_v++;
                 for (auto const &u : graph.in_neighbors(v)) {
+                    edge_visit++;
                     if (front.get_bit(u)) {
                         depth[v] = depth[u] + 1;
                         sum++;
@@ -165,14 +171,41 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
                 }
             }
         }
+        print_info(std::cout, iter, active_v, edge_visit);
         iter++;
         front.swap(next);
     }
-    auto [active_num, total_degree] = pull_active_helper(graph, depth);
-    std::cout << std::format("Iter. {} Active: {:<10d}, Total Degree: {:<15d}",
-                             iter, active_num, total_degree) << std::endl;
     return depth;
 }
+
+//int main(int argc, char *argv[]) {
+//    fs::path graph_file_path(DATASET_PATH);
+//    if (argc < 2) {
+//        graph_file_path /= "rmat_20.txt";
+//    } else {
+//        graph_file_path /= argv[1];
+//    }
+//
+//    Builder<Node> builder{graph_file_path.string(), true};
+//    Graph<Node> graph = builder.build_csr();
+//    std::clog << "Graph: " << graph_file_path.string() << std::endl;
+//
+//    Graph<Node> simplified = simplify_graph(graph);
+//
+//    std::ofstream out("undirected-soc-Livejournal1.txt", std::ios::out | std::ios::trunc);
+//    for (Node u : std::views::iota(0, simplified.get_vertex_number())) {
+//        for (auto const &v : simplified.out_neighbors(u)) {
+//            out << u << " " << v << "\n";
+//        }
+//        if (u % 1000 == 0) {
+//            out.flush();
+//        }
+//    }
+//    out.flush();
+//    out.close();
+//
+//    return 0;
+//}
 
 int main(int argc, char *argv[]) {
     fs::path graph_file_path(DATASET_PATH);
