@@ -22,6 +22,7 @@ public:
     Builder(StrT &&graph_file, bool symmetric=false)
         : graph_file{std::forward<StrT>(graph_file)}, symmetric{symmetric} {}
     Graph<T, DstT> build_csr();
+    Graph<T, DstT> build_weight_csr();
 };
 
 template<typename T, typename DstT>
@@ -114,4 +115,8 @@ Graph<T, DstT> Builder<T, DstT>::build_csr() {
     }
     delete[] tmp;
     return {vertex_number, out_offset, out_neigh, in_offset, in_neigh};
+}
+
+template<typename T, typename DstT>
+Graph<T, DstT> Builder<T, DstT>::build_weight_csr() {
 }

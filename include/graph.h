@@ -11,10 +11,21 @@
 #include <queue>
 #include <unordered_set>
 
+template<typename T, typename WeightT>
+struct WEdge{
+    T v;
+    WeightT weight;
+};
+
 template<typename T,
     typename=std::enable_if_t<std::is_integral_v<T>>>
 T &get_dst_id(T &dst) {
     return dst;
+}
+
+template<typename T>
+auto get_dst_id(T &dst) -> decltype(std::declval<T>().v) & {
+    return dst.v;
 }
 
 template<typename T, typename DstT = T>
@@ -71,7 +82,7 @@ Graph<T, DstT>::Graph(int64_t vertex_number, offset_t *&out_offset, DstT *&out_n
     this->out_neigh = std::exchange(out_neigh, nullptr);
     this->in_offset = this->out_offset;
     this->in_neigh = this->out_neigh;
-    edge_number = (this->out_offset[vertex_number] - this->out_offset[0]) / 2;
+    edge_number = (this->out_offset[vertex_number] - this->out_offset[0]);
 }
 
 template<typename T, typename DstT>

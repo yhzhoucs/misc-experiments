@@ -178,36 +178,42 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
     return depth;
 }
 
-//int main(int argc, char *argv[]) {
-//    fs::path graph_file_path(DATASET_PATH);
-//    if (argc < 2) {
-//        graph_file_path /= "rmat_20.txt";
-//    } else {
-//        graph_file_path /= argv[1];
-//    }
-//
-//    Builder<Node> builder{graph_file_path.string(), true};
-//    Graph<Node> graph = builder.build_csr();
-//    std::clog << "Graph: " << graph_file_path.string() << std::endl;
-//
-//    Graph<Node> simplified = simplify_graph(graph);
-//
-//    std::ofstream out("undirected-soc-Livejournal1.txt", std::ios::out | std::ios::trunc);
-//    for (Node u : std::views::iota(0, simplified.get_vertex_number())) {
-//        for (auto const &v : simplified.out_neighbors(u)) {
-//            out << u << " " << v << "\n";
-//        }
-//        if (u % 1000 == 0) {
-//            out.flush();
-//        }
-//    }
-//    out.flush();
-//    out.close();
-//
-//    return 0;
-//}
-
 int main(int argc, char *argv[]) {
+    WEdge<int, int> w{1};
+
+    return 0;
+}
+
+int _1main(int argc, char *argv[]) {
+    fs::path graph_file_path(DATASET_PATH);
+    if (argc < 2) {
+        graph_file_path /= "rmat_20.txt";
+    } else {
+        graph_file_path /= argv[1];
+    }
+
+    Builder<Node> builder{graph_file_path.string(), true};
+    Graph<Node> graph = builder.build_csr();
+    std::clog << "Graph: " << graph_file_path.string() << std::endl;
+
+    Graph<Node> simplified = simplify_graph(graph);
+
+    std::ofstream out("undirected-soc-Livejournal1.txt", std::ios::out | std::ios::trunc);
+    for (Node u : std::views::iota(0, simplified.get_vertex_number())) {
+        for (auto const &v : simplified.out_neighbors(u)) {
+            out << u << " " << v << "\n";
+        }
+        if (u % 1000 == 0) {
+            out.flush();
+        }
+    }
+    out.flush();
+    out.close();
+
+    return 0;
+}
+
+int _main(int argc, char *argv[]) {
     fs::path graph_file_path(DATASET_PATH);
     if (argc < 2) {
         graph_file_path /= "rmat_20.txt";
