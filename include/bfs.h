@@ -8,11 +8,13 @@
 #include <type_traits>
 
 template<typename T>
+inline
 constexpr T get_max_prop() {
     return T{-1};
 }
 
 template<typename T>
+inline
 constexpr bool is_max_prop(T const &prop) {
     return prop == get_max_prop<T>();
 }
@@ -51,7 +53,6 @@ std::vector<PropT> do_bfs(Graph<T, DstT> const &graph, T root) {
     }
     return depth;
 }
-
 
 template<typename T, typename DstT, typename AddrT, typename PropT = int>
 std::tuple<long long, long long> do_cacheline_bfs(Graph<T, DstT> const &graph, T root, Memory<AddrT> &memory) {

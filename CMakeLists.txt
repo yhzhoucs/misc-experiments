@@ -23,17 +23,22 @@ set(SubModuleHeaders
 
 add_executable(expt1 src/parent_stats.cpp ${Headers1} ${SubModuleHeaders})
 add_executable(expt2 src/cacheline_visit.cpp ${Headers2} ${SubModuleHeaders})
+add_executable(misc src/misc.cpp ${Headers1})
 
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt1 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_include_directories(expt2 PRIVATE ${PROJECT_SOURCE_DIR}/plf_nanotimer)
-target_compile_definitions(expt1 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset") # dataset path
-target_compile_definitions(expt2 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset") # dataset path
+target_compile_definitions(expt1 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
+target_compile_definitions(expt2 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
+
+target_include_directories(misc PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_compile_definitions(misc PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
     message("OpenMP Found")
     target_link_libraries(expt1 PUBLIC OpenMP::OpenMP_CXX)
     target_link_libraries(expt2 PUBLIC OpenMP::OpenMP_CXX)
+    target_link_libraries(misc PUBLIC OpenMP::OpenMP_CXX)
 endif()
