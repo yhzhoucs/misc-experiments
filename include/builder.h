@@ -43,6 +43,11 @@ typename Builder<T, DstT>::EdgeList Builder<T, DstT>::read_edge_list() {
         if (symmetric && u != v)
             el.emplace_back(v, DstT{u});
     }
+
+    // for weighted graph
+    // add random weights
+    
+
     return el;
 }
 
