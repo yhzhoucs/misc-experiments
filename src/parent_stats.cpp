@@ -95,6 +95,16 @@ int main(int argc, char *argv[]) {
             reduce_backup(parent_cnt, record_path / (graph_file + "-parent_cnt.bin"), std::plus<>());
             std::cout << "Backup Finish!" << std::endl;
         }
+
+        fs::path record_path(RECORD_PATH);
+        auto get_degree = [&graph](int vid) { return graph.out_degree(vid); };
+        // convert binary record to txt
+        convert_to_txt<long double, decltype(get_degree)>(
+                record_path / (graph_file + "-parent_cnt.bin"),
+                record_path / (graph_file + "-parent_cnt.txt"),
+                static_cast<int>(graph.get_vertex_number()),
+                get_degree
+        );
     }
     return 0;
 }

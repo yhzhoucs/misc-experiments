@@ -9,6 +9,7 @@
 #include <vector>
 #include <filesystem>
 #include <algorithm>
+#include <ranges>
 
 namespace fs = std::filesystem;
 
@@ -29,5 +30,19 @@ void reduce_backup(std::vector<T> &backup, std::string const &file_name, BinaryO
         file.close();
     }
 }
+
+template<typename T, typename FuncT>
+void convert_to_txt(std::string const &binary_file, std::string const &output_file, int vertex_num, FuncT get_degree) {
+    std::vector<T> tmp(vertex_num);
+    std::fstream in(binary_file, std::ios::in | std::ios::binary);
+    in.read(reinterpret_cast<char*>(tmp.data()), sizeof(T) * tmp.size());
+    in.close();
+    std::fstream out(output_file, std::ios::out | std::ios::trunc);
+    for (int i : std::views::iota(0, vertex_num)) {
+        out << get_degree(i) << " " << tmp[i] << std::endl;
+    }
+    out.close();
+}
+
 
 #endif //EXPERIMENT_UTILS_H
