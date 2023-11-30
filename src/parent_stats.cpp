@@ -36,15 +36,29 @@ int main(int argc, char *argv[]) {
         Graph<Node> graph = builder.build_csr();
         std::clog << "Graph Construction: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
+        int non_iso_count{};
+        Node vertex_to_go{};
+        for (Node i : std::views::iota(0, graph.get_vertex_number())) {
+            vertex_to_go++;
+            if (graph.out_degree(i) > 0) {
+                non_iso_count++;
+                if (non_iso_count == graph.get_vertex_number()/200)
+                    break;
+            }
+        }
+
+        std::cout << "Vertex To Go: " << vertex_to_go << std::endl;
+        std::cout << "Non Isolated Number: " << non_iso_count << " " << graph.get_vertex_number()/200 << std::endl;
+
         std::vector<long double> parent_cnt(graph.get_vertex_number());
 
-        int block_number = (graph.get_vertex_number() + block_size - 1) / block_size;
+        int block_number = (vertex_to_go + block_size - 1) / block_size;
         // backup data when every block finishes
         for (int block_id{}; block_id < block_number; ++block_id) {
             std::fill(parent_cnt.begin(), parent_cnt.end(), 0.0);
 
             Node vid_beg = block_id * block_size;
-            Node vid_end = std::min((block_id + 1) * block_size, static_cast<Node>(graph.get_vertex_number()));
+            Node vid_end = std::min((block_id + 1) * block_size, vertex_to_go);
             std::cout << std::format("Start to process block {} ({}-{})", block_id, vid_beg, vid_end - 1) << std::endl;
             timer.start();
             #pragma omp parallel default(none) shared(graph, vid_beg, vid_end, parent_cnt)
@@ -78,7 +92,7 @@ int main(int argc, char *argv[]) {
             std::cout << "Time Elapsed: " << timer.get_elapsed_ms() / 1000 << " s" << std::endl;
 
             fs::path record_path(RECORD_PATH);
-            reduce_backup(parent_cnt, record_path / (graph_file + "-parent_cnt.txt"), std::plus<>());
+            reduce_backup(parent_cnt, record_path / (graph_file + "-parent_cnt.bin"), std::plus<>());
             std::cout << "Backup Finish!" << std::endl;
         }
     }
