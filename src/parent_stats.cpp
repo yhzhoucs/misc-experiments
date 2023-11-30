@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     std::clog << "Graph Construction: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
     timer.start();
-    std::vector<Node> sources = pick_sources(graph, 64);
+    std::vector<Node> sources = pick_sources(graph, 4);
     std::clog << "Source Pick: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
 //    std::vector<Node> sources{76294, 39534, 82507, 119159, 63081, 107786, 66976, 49259, 84806, 14105, 115310, 124530, 23212, 30726, 83086, 72855};
@@ -66,6 +66,10 @@ int main(int argc, char *argv[]) {
     std::clog << "Processing: " << timer.get_elapsed_ms() << " ms" << std::endl;
 
     std::ofstream out(graph_file_path.filename().string() + "-parent_stats.txt", std::ios::out | std::ios::trunc);
+    out << "# " << graph.get_vertex_number() << " " << graph.get_edge_number() << std::endl;
+    out << "# ";
+    std::copy(sources.begin(), sources.end(), std::ostream_iterator<int>(out, ", "));
+    out << std::endl;
     std::copy(parent_cnt.begin(), parent_cnt.end(), std::ostream_iterator<int>(out, "\n"));
     out.flush();
     out.close();
