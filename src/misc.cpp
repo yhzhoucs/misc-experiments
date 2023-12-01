@@ -178,33 +178,44 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
     return depth;
 }
 
+std::vector<std::string> graph_names{
+    "rmat_18.txt",
+    "rmat_19.txt",
+    "rmat_20.txt",
+    "soc-Slashdot0811.txt",
+    "soc-LiveJournal1.txt",
+    "com-orkut.ungraph.txt"
+};
+
+std::vector<std::string> undirected_graph_names{
+    "soc-Slashdot0811.txt",
+    "soc-LiveJournal1.txt"
+};
+
 int main(int argc, char *argv[]) {
     fs::path graph_file_path(DATASET_PATH);
-    if (argc < 2) {
-        graph_file_path /= "rmat_17.txt";
-    } else {
-        graph_file_path /= argv[1];
+
+    for (auto const &graph_name : graph_names) {
+        bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
+        Builder<Node> builder{(graph_file_path/graph_name).string(), need_sym};
+        Graph<Node> graph = builder.build_csr();
+        std::clog << "Graph: " << (graph_file_path/graph_name).string() << std::endl;
+        std::ofstream out("ligra_" + graph_name, std::ios::out | std::ios::trunc);
+        out << graph.get_vertex_number() << std::endl;
+        out << ((need_sym) ? (graph.get_edge_number() * 2) : graph.get_edge_number()) << std::endl;
+        auto out_offset = graph.get_offset();
+        for (Node i : std::views::iota(0, graph.get_vertex_number())) {
+            out << out_offset[i] << "\n";
+        }
+        out.flush();
+        for (Node u : std::views::iota(0, graph.get_vertex_number())) {
+            for (auto const &v : graph.out_neighbors(u)) {
+                out << v << "\n";
+            }
+            out.flush();
+        }
+        out.close();
     }
-
-    Builder<Node> builder{graph_file_path.string(), true};
-    Graph<Node> graph = builder.build_csr();
-    std::clog << "Graph: " << graph_file_path.string() << std::endl;
-
-    std::cout << graph.out_degree(114280)  << " " << graph.in_degree(114280) << std::endl;
-
-//    Graph<Node> simplified = simplify_graph(graph);
-//
-//    std::ofstream out("undirected-soc-Livejournal1.txt", std::ios::out | std::ios::trunc);
-//    for (Node u : std::views::iota(0, simplified.get_vertex_number())) {
-//        for (auto const &v : simplified.out_neighbors(u)) {
-//            out << u << " " << v << "\n";
-//        }
-//        if (u % 1000 == 0) {
-//            out.flush();
-//        }
-//    }
-//    out.flush();
-//    out.close();
 
     return 0;
 }

@@ -55,6 +55,7 @@ public:
     [[nodiscard]] int64_t get_vertex_number() const { return vertex_number; }
     [[nodiscard]] int64_t get_edge_number() const { return edge_number; }
     [[nodiscard]] bool is_directed() const { return directed; }
+    [[nodiscard]] offset_t const *get_offset() const { return out_offset; }
     offset_t out_degree(T n) const { return out_offset[n + 1] - out_offset[n]; }
     offset_t in_degree(T n) const { return in_offset[n + 1] - in_offset[n]; }
     Neighborhood out_neighbors(T n) const { return {n, out_offset, out_neigh}; }
