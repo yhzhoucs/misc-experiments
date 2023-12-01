@@ -217,6 +217,24 @@ int main(int argc, char *argv[]) {
         out.close();
     }
 
+
+    for (auto const &graph_name : graph_names) {
+        bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
+        Builder<Node> builder{(graph_file_path/graph_name).string(), need_sym};
+        Graph<Node> graph = builder.build_csr();
+        std::clog << "Graph: " << (graph_file_path/graph_name).string() << std::endl;
+        std::ofstream out("gunrock_" + graph_name, std::ios::out | std::ios::trunc);
+        out << graph.get_vertex_number() << " "
+            << graph.get_vertex_number() << " "
+            << ((need_sym) ? (graph.get_edge_number() * 2) : (graph.get_edge_number())) << std::endl;
+        for (Node u : std::views::iota(0, graph.get_vertex_number())) {
+            for (auto const &v : graph.out_neighbors(u)) {
+                out << u << " " << v << "\n";
+            }
+            out.flush();
+        }
+        out.close();
+    }
     return 0;
 }
 
