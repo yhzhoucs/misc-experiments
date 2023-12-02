@@ -179,17 +179,17 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
 }
 
 std::vector<std::string> graph_names{
-    "rmat_18.txt",
-    "rmat_19.txt",
-    "rmat_20.txt",
-    "soc-Slashdot0811.txt",
-    "soc-LiveJournal1.txt",
-    "com-orkut.ungraph.txt"
+    "rmat_18",
+    "rmat_19",
+    "rmat_20",
+    "soc-Slashdot0811",
+    "soc-LiveJournal1",
+    "com-orkut.ungraph"
 };
 
 std::vector<std::string> undirected_graph_names{
-    "soc-Slashdot0811.txt",
-    "soc-LiveJournal1.txt"
+    "soc-Slashdot0811",
+    "soc-LiveJournal1"
 };
 
 int main(int argc, char *argv[]) {
@@ -197,10 +197,10 @@ int main(int argc, char *argv[]) {
 
     for (auto const &graph_name : graph_names) {
         bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
-        Builder<Node> builder{(graph_file_path/graph_name).string(), need_sym};
+        Builder<Node> builder{(graph_file_path/(graph_name+".txt")).string(), need_sym};
         Graph<Node> graph = builder.build_csr();
-        std::clog << "Graph: " << (graph_file_path/graph_name).string() << std::endl;
-        std::ofstream out("ligra_" + graph_name, std::ios::out | std::ios::trunc);
+        std::clog << "Graph: " << (graph_file_path/(graph_name+".txt")).string() << std::endl;
+        std::ofstream out("ligra_" + graph_name + ".txt", std::ios::out | std::ios::trunc);
         out << graph.get_vertex_number() << std::endl;
         out << ((need_sym) ? (graph.get_edge_number() * 2) : graph.get_edge_number()) << std::endl;
         auto out_offset = graph.get_offset();
@@ -220,16 +220,16 @@ int main(int argc, char *argv[]) {
 
     for (auto const &graph_name : graph_names) {
         bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
-        Builder<Node> builder{(graph_file_path/graph_name).string(), need_sym};
+        Builder<Node> builder{(graph_file_path/(graph_name+".txt")).string(), need_sym};
         Graph<Node> graph = builder.build_csr();
-        std::clog << "Graph: " << (graph_file_path/graph_name).string() << std::endl;
-        std::ofstream out("gunrock_" + graph_name, std::ios::out | std::ios::trunc);
+        std::clog << "Graph: " << (graph_file_path/(graph_name+".txt")).string() << std::endl;
+        std::ofstream out("gunrock_" + graph_name + ".mtx", std::ios::out | std::ios::trunc);
         out << graph.get_vertex_number() << " "
             << graph.get_vertex_number() << " "
             << ((need_sym) ? (graph.get_edge_number() * 2) : (graph.get_edge_number())) << std::endl;
-        for (Node u : std::views::iota(0, graph.get_vertex_number())) {
-            for (auto const &v : graph.out_neighbors(u)) {
-                out << u << " " << v << "\n";
+        for (Node v : std::views::iota(0, graph.get_vertex_number())) {
+            for (auto const &u : graph.in_neighbors(v)) {
+                out << u + 1 << " " << v + 1 << "\n";
             }
             out.flush();
         }
