@@ -200,6 +200,21 @@ int main(int argc, char *argv[]) {
         Builder<Node> builder{(graph_file_path/(graph_name+".txt")).string(), need_sym};
         Graph<Node> graph = builder.build_csr();
         std::clog << "Graph: " << (graph_file_path/(graph_name+".txt")).string() << std::endl;
+
+        std::vector<int> sources = pick_sources(graph, 64);
+        std::copy(sources.begin(), sources.end(), std::ostream_iterator<int>(std::cout, ","));
+        std::cout << std::endl;
+    }
+}
+
+int _2main(int argc, char *argv[]) {
+    fs::path graph_file_path(DATASET_PATH);
+
+    for (auto const &graph_name : graph_names) {
+        bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
+        Builder<Node> builder{(graph_file_path/(graph_name+".txt")).string(), need_sym};
+        Graph<Node> graph = builder.build_csr();
+        std::clog << "Graph: " << (graph_file_path/(graph_name+".txt")).string() << std::endl;
         std::ofstream out("ligra_" + graph_name + ".txt", std::ios::out | std::ios::trunc);
         out << graph.get_vertex_number() << std::endl;
         out << ((need_sym) ? (graph.get_edge_number() * 2) : graph.get_edge_number()) << std::endl;
@@ -238,7 +253,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-int _main(int argc, char *argv[]) {
+int _1main(int argc, char *argv[]) {
     fs::path graph_file_path(DATASET_PATH);
     if (argc < 2) {
         graph_file_path /= "rmat_20.txt";
