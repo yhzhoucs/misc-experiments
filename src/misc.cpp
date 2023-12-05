@@ -4,6 +4,7 @@
 #include "bitmap.h"
 #include <filesystem>
 #include <format>
+#include <iterator>
 
 namespace fs = std::filesystem;
 
@@ -206,6 +207,10 @@ int main(int argc, char *argv[]) {
         }
         std::clog << "Graph: " << (dataset_path/(graph_name+".txt")).string() << std::endl;
         graph.sort_neighborhood(std::greater<>());
+
+        std::vector<Node> sources = pick_sources(graph, 16);
+        std::copy(sources.begin(), sources.end(), std::ostream_iterator<Node>(std::cout, ","));
+        std::cout << std::endl;
 
         fs::path output_path(OUTPUT_PATH);
         std::ofstream out((output_path/("sorted-tmp-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
