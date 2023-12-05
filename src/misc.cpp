@@ -208,9 +208,25 @@ int main(int argc, char *argv[]) {
         std::clog << "Graph: " << (dataset_path/(graph_name+".txt")).string() << std::endl;
         graph.sort_neighborhood(std::greater<>());
 
-        std::vector<Node> sources = pick_sources(graph, 16);
-        std::copy(sources.begin(), sources.end(), std::ostream_iterator<Node>(std::cout, ","));
-        std::cout << std::endl;
+//        std::vector<Node> sources = pick_sources(graph, 16);
+//        std::copy(sources.begin(), sources.end(), std::ostream_iterator<Node>(std::cout, ","));
+//        std::cout << std::endl;
+
+        std::random_device rd;
+        std::mt19937 rng(rd());
+        std::uniform_int_distribution<Node> dist(0, static_cast<Node>(graph.get_vertex_number() - 1));
+
+        std::vector<int> sources; sources.reserve(64);
+        for (int i{}; i < 64; ++i) {
+            Node rn;
+            do {
+                rn = dist(rng);
+            } while (graph.out_degree(rn) == 0);
+            std::vector<Prop> depth = do_bfs(graph, rn);
+            int tree_size = std::transform_reduce(depth.begin(), depth.end(), 0, std::plus<>(), [](Prop const &p) -> int { return p >= 0; });
+            std::cout << tree_size << " " << rn << std::endl;
+        }
+        return 0;
 
         fs::path output_path(OUTPUT_PATH);
         std::ofstream out((output_path/("sorted-tmp-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
