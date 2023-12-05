@@ -179,10 +179,10 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
 }
 
 std::vector<std::string> graph_names{
-    "rmat_18"//,
+//    "rmat_18",
 //    "rmat_19",
 //    "rmat_20",
-//    "soc-Slashdot0811",
+    "soc-Slashdot0811"//,
 //    "soc-LiveJournal1",
 //    "com-orkut.ungraph"
 };
@@ -198,12 +198,17 @@ int main(int argc, char *argv[]) {
     for (auto const &graph_name : graph_names) {
         bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
         Builder<Node> builder{(dataset_path/(graph_name+".txt")).string(), need_sym};
-        Graph<Node> graph = builder.build_csr();
+        Graph<Node> graph;
+        {
+            Graph<Node> raw = builder.build_csr();
+            auto [g1, new_ids, new_ids_remap] = squeeze_graph(raw);
+            graph = simplify_graph(g1);
+        }
         std::clog << "Graph: " << (dataset_path/(graph_name+".txt")).string() << std::endl;
         graph.sort_neighborhood(std::greater<>());
 
         fs::path output_path(OUTPUT_PATH);
-        std::ofstream out((output_path/("sorted-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
+        std::ofstream out((output_path/("sorted-tmp-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
         out << graph.get_vertex_number() << " "
             << ((need_sym) ? (graph.get_edge_number() * 2) : graph.get_edge_number()) << std::endl;
         for (Node v = 0; v < graph.get_vertex_number(); ++v) {
@@ -226,7 +231,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        out.open((output_path/(graph_name+"_32hubs.txt")).string(), std::ios::out | std::ios::trunc);
+        out.open((output_path/(graph_name+"_tmp_32hubs.txt")).string(), std::ios::out | std::ios::trunc);
         std::vector<Node> tmp;
         while (!max_heap.empty()) {
             tmp.emplace_back(max_heap.top().second);
