@@ -179,12 +179,12 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
 }
 
 std::vector<std::string> graph_names{
-    "rmat_18",
-    "rmat_19",
-    "rmat_20",
-    "soc-Slashdot0811",
-    "soc-LiveJournal1",
-    "com-orkut.ungraph"
+    "rmat_18"//,
+//    "rmat_19",
+//    "rmat_20",
+//    "soc-Slashdot0811",
+//    "soc-LiveJournal1",
+//    "com-orkut.ungraph"
 };
 
 std::vector<std::string> undirected_graph_names{
@@ -193,17 +193,51 @@ std::vector<std::string> undirected_graph_names{
 };
 
 int main(int argc, char *argv[]) {
-    fs::path graph_file_path(DATASET_PATH);
+    fs::path dataset_path(DATASET_PATH);
 
     for (auto const &graph_name : graph_names) {
         bool need_sym = (std::find(undirected_graph_names.begin(), undirected_graph_names.end(), graph_name) != undirected_graph_names.end());
-        Builder<Node> builder{(graph_file_path/(graph_name+".txt")).string(), need_sym};
+        Builder<Node> builder{(dataset_path/(graph_name+".txt")).string(), need_sym};
         Graph<Node> graph = builder.build_csr();
-        std::clog << "Graph: " << (graph_file_path/(graph_name+".txt")).string() << std::endl;
+        std::clog << "Graph: " << (dataset_path/(graph_name+".txt")).string() << std::endl;
+        graph.sort_neighborhood(std::greater<>());
 
-        std::vector<int> sources = pick_sources(graph, 64);
-        std::copy(sources.begin(), sources.end(), std::ostream_iterator<int>(std::cout, ","));
+        fs::path output_path(OUTPUT_PATH);
+        std::ofstream out((output_path/("sorted-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
+        out << graph.get_vertex_number() << " "
+            << ((need_sym) ? (graph.get_edge_number() * 2) : graph.get_edge_number()) << std::endl;
+        for (Node v = 0; v < graph.get_vertex_number(); ++v) {
+            for (auto const &u : graph.in_neighbors(v)) {
+                out << get_dst_id(u) << " " << v << std::endl;
+            }
+        }
+        out.close();
+
+        using DNV = std::pair<Graph<Node>::offset_t, Node>;
+        std::priority_queue<DNV, std::vector<DNV>, std::greater<>> max_heap;
+        for (Node u = 0; u < graph.get_vertex_number(); ++u) {
+            if (max_heap.size() < 32) {
+                max_heap.emplace(graph.out_degree(u), u);
+            } else {
+                if (graph.out_degree(u) > max_heap.top().first) {
+                    max_heap.pop();
+                    max_heap.emplace(graph.out_degree(u), u);
+                }
+            }
+        }
+
+        out.open((output_path/(graph_name+"_32hubs.txt")).string(), std::ios::out | std::ios::trunc);
+        std::vector<Node> tmp;
+        while (!max_heap.empty()) {
+            tmp.emplace_back(max_heap.top().second);
+            std::cout << max_heap.top().first << " " << max_heap.top().second << std::endl;
+            max_heap.pop();
+        }
+        std::copy(tmp.rbegin(), tmp.rend(), std::ostream_iterator<Node>(std::cout, ", "));
         std::cout << std::endl;
+        std::copy(tmp.rbegin(), tmp.rend(), std::ostream_iterator<Node>(out, ", "));
+        out << std::endl;
+        out.close();
     }
 }
 

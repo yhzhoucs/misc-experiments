@@ -60,6 +60,8 @@ public:
     offset_t in_degree(T n) const { return in_offset[n + 1] - in_offset[n]; }
     Neighborhood out_neighbors(T n) const { return {n, out_offset, out_neigh}; }
     Neighborhood in_neighbors(T n) const { return {n, in_offset, in_neigh}; }
+    template<typename Comp>
+    void sort_neighborhood(Comp comp);
 
     template<typename TT, typename DstTT>
     friend Graph<TT, DstTT> simplify_graph(Graph<TT, DstTT> &raw);
@@ -123,6 +125,23 @@ Graph<T, DstT> &Graph<T, DstT>::operator=(Graph<T, DstT> &&other) noexcept {
     this->in_offset = std::exchange(other.in_offset, nullptr);
     this->in_neigh = std::exchange(other.in_neigh, nullptr);
     return *this;
+}
+
+template<typename T, typename DstT>
+    template<typename Comp>
+void Graph<T, DstT>::sort_neighborhood(Comp comp) {
+    for (T u = 0; u < this->vertex_number; ++u) {
+        std::sort(&out_neigh[out_offset[u]],
+                  &out_neigh[out_offset[u + 1]],
+                  [&](T const &lhs, T const &rhs) { return comp(out_degree(lhs), out_degree(rhs)); });
+    }
+    if (directed) {
+        for (T u = 0; u < this->vertex_number; ++u) {
+            std::sort(&in_neigh[in_offset[u]],
+                      &in_neigh[in_offset[u + 1]],
+                      [&](T const &lhs, T const &rhs) { return comp(out_degree(lhs), out_degree(rhs)); });
+        }
+    }
 }
 
 template<typename T, typename DstT>

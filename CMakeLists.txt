@@ -34,6 +34,7 @@ target_compile_definitions(expt2 PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dat
 
 target_include_directories(misc PRIVATE ${PROJECT_SOURCE_DIR}/include)
 target_compile_definitions(misc PRIVATE DATASET_PATH="${PROJECT_SOURCE_DIR}/dataset")
+target_compile_definitions(misc PRIVATE OUTPUT_PATH="${PROJECT_SOURCE_DIR}/output")
 
 find_package(OpenMP)
 if(OpenMP_CXX_FOUND)
