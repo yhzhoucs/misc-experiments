@@ -180,10 +180,10 @@ std::vector<PropT> pull_eb_active_num_ana(Graph<T, DstT> const &graph, T root) {
 }
 
 std::vector<std::string> graph_names{
-//    "rmat_18",
-//    "rmat_19",
-//    "rmat_20",
-    "soc-Slashdot0811"//,
+    "rmat_18",
+    "rmat_19",
+    "rmat_20",
+//    "soc-Slashdot0811",
 //    "soc-LiveJournal1",
 //    "com-orkut.ungraph"
 };
@@ -192,6 +192,41 @@ std::vector<std::string> undirected_graph_names{
     "soc-Slashdot0811",
     "soc-LiveJournal1"
 };
+
+int _4main(int argc, char *argv[]) {
+    fs::path dataset_path(DATASET_PATH);
+    std::string graph_name = "sorted-tmp-1-com-orkut.ungraph";
+
+    Builder<Node> builder{(dataset_path/(graph_name+".txt")).string()};
+    Graph<Node> graph = builder.build_csr();
+    std::cout << "Build Success" << std::endl;
+    graph.sort_neighborhood(std::greater<>());
+
+    for (auto  const &u : graph.in_neighbors(67868)) {
+        std::cout << graph.out_degree(u) << ", ";
+    }
+    std::cout << std::endl;
+
+    return 0;
+
+    bool flag = true;
+    for (Node v : std::views::iota(0, graph.get_vertex_number())) {
+        unsigned prev = std::numeric_limits<unsigned>::max();
+        for (auto  const &u : graph.in_neighbors(v)) {
+            if (graph.out_degree(u) > prev) {
+                flag = false;
+                break;
+            }
+            prev = graph.out_degree(u);
+        }
+        if (!flag) {
+            break;
+        }
+    }
+    std::cout << "flag: " << flag << std::endl;
+
+    return 0;
+}
 
 int main(int argc, char *argv[]) {
     fs::path dataset_path(DATASET_PATH);
@@ -208,25 +243,24 @@ int main(int argc, char *argv[]) {
         std::clog << "Graph: " << (dataset_path/(graph_name+".txt")).string() << std::endl;
         graph.sort_neighborhood(std::greater<>());
 
-//        std::vector<Node> sources = pick_sources(graph, 16);
-//        std::copy(sources.begin(), sources.end(), std::ostream_iterator<Node>(std::cout, ","));
-//        std::cout << std::endl;
+        std::vector<Node> sources = pick_sources(graph, 16);
+        std::copy(sources.begin(), sources.end(), std::ostream_iterator<Node>(std::cout, ","));
+        std::cout << std::endl;
 
-        std::random_device rd;
-        std::mt19937 rng(rd());
-        std::uniform_int_distribution<Node> dist(0, static_cast<Node>(graph.get_vertex_number() - 1));
-
-        std::vector<int> sources; sources.reserve(64);
-        for (int i{}; i < 64; ++i) {
-            Node rn;
-            do {
-                rn = dist(rng);
-            } while (graph.out_degree(rn) == 0);
-            std::vector<Prop> depth = do_bfs(graph, rn);
-            int tree_size = std::transform_reduce(depth.begin(), depth.end(), 0, std::plus<>(), [](Prop const &p) -> int { return p >= 0; });
-            std::cout << tree_size << " " << rn << std::endl;
-        }
-        return 0;
+//        std::random_device rd;
+//        std::mt19937 rng(rd());
+//        std::uniform_int_distribution<Node> dist(0, static_cast<Node>(graph.get_vertex_number() - 1));
+//
+//        std::vector<int> sources; sources.reserve(64);
+//        for (int i{}; i < 64; ++i) {
+//            Node rn;
+//            do {
+//                rn = dist(rng);
+//            } while (graph.out_degree(rn) == 0);
+//            std::vector<Prop> depth = do_bfs(graph, rn);
+//            int tree_size = std::transform_reduce(depth.begin(), depth.end(), 0, std::plus<>(), [](Prop const &p) -> int { return p >= 0; });
+//            std::cout << tree_size << " " << rn << std::endl;
+//        }
 
         fs::path output_path(OUTPUT_PATH);
         std::ofstream out((output_path/("sorted-tmp-"+graph_name+".txt")).string(), std::ios::out | std::ios::trunc);
@@ -242,7 +276,7 @@ int main(int argc, char *argv[]) {
         using DNV = std::pair<Graph<Node>::offset_t, Node>;
         std::priority_queue<DNV, std::vector<DNV>, std::greater<>> max_heap;
         for (Node u = 0; u < graph.get_vertex_number(); ++u) {
-            if (max_heap.size() < 32) {
+            if (max_heap.size() < 256) {
                 max_heap.emplace(graph.out_degree(u), u);
             } else {
                 if (graph.out_degree(u) > max_heap.top().first) {
@@ -252,7 +286,7 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        out.open((output_path/(graph_name+"_tmp_32hubs.txt")).string(), std::ios::out | std::ios::trunc);
+        out.open((output_path/(graph_name+"_tmp_256hubs.txt")).string(), std::ios::out | std::ios::trunc);
         std::vector<Node> tmp;
         while (!max_heap.empty()) {
             tmp.emplace_back(max_heap.top().second);
@@ -265,6 +299,8 @@ int main(int argc, char *argv[]) {
         out << std::endl;
         out.close();
     }
+
+    return 0;
 }
 
 int _2main(int argc, char *argv[]) {
